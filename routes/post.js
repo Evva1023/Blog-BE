@@ -1,7 +1,6 @@
 import {Router} from "express";
+import {addPost} from "../controllers/post";
 
 export const postRouter = Router();
 
-postRouter.get("/", (req, res) => {
-    res.json("Posts fetching path");
-});
+postRouter.get("/", addPost);
