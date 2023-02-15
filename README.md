@@ -1,4 +1,4 @@
-## Blog Application - back-end built with Express
+## Blog Application -- Back-End built with Express
 
 ## Run locally
 
