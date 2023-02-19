@@ -1,7 +1,9 @@
 import {Router} from "express";
+import {login, logout, register} from "../controllers/auth.js";
 
 export const authRouter = Router();
 
-authRouter.get("/", (req, res) => {
-    res.json("Login and register path");
-});
+authRouter
+.post("/login", login)
+.post("/logout", logout)
+.post("/register", register);
