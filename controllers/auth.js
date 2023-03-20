@@ -21,28 +21,27 @@ const hashPassword = async (password) => {
 
 const comparePassword = async (password, hashedPassword) => {
     const isPasswordCorrect = await bcrypt.compare(password, hashedPassword);
-    if (!isPasswordCorrect) {
-        return res.status(400).json({message: "Password not correct"});
-    }
+    return isPasswordCorrect;
 };
 
 export const login = async (req, res) => {
     const users = await readData();
 
-    console.log(users);
-
     const userLoginData = req.body;
     console.log(userLoginData);
 
     const checkUser = await users.find(user => user.username === userLoginData.username);
-    console.log(checkUser);
 
     if (!checkUser) {
         console.log("No such user");
-        return;
+        return res.status(409).json({message: "User not found"});
     }
 
     comparePassword(userLoginData.password, checkUser.password);
+    
+    if (!comparePassword) {
+        return res.status(400).json({message: "Password not correct"});
+    }
     
     const token = jwt.sign({id: checkUser.id}, "SECRET_KEY_HERE");
 
@@ -50,7 +49,12 @@ export const login = async (req, res) => {
 };
 
 
-export const logout = (req, res) => {};
+export const logout = (req, res) => {
+    res.clearCookie("access_token", {
+        sameSite: "none",
+        secure: true
+    }).status(200).json({message: "User logged out"});
+};
 
 
 
@@ -61,24 +65,24 @@ export const register = async (req, res) => {
     const newUserData = req.body;
     //console.log("DANE NOWEGO USERA Z FORMULARZA",newUserData);
     
-    const checkUser = await users.find(user => user.username === req.body.username || user.email === req.body.email);
+    const checkUser = await users.find(user => user.username === newUserData.username || user.email === newUserData.email);
     //console.log(checkUser.username, checkUser.email);
     if (checkUser) {
         console.log("Such user already has been registered");
-        return;
+        return res.status(409).json({message: "User already exists"});
     }
 
-    if (req.body.password !== req.body.confirmPassword) {
+    if (newUserData.password !== newUserData.confirmPassword) {
         console.log("Passwords must be the same");
-        return;
+        return res.status(409).json({message: "Passwords must be exactly the same"});
     }
 
-    const hashedPassword = await hashPassword(req.body.password);
+    const hashedPassword = await hashPassword(newUserData.password);
 
     const newUser = {
         id: uuid(),
-        username: req.body.username,
-        email: req.body.email,
+        username: newUserData.username,
+        email: newUserData.email,
         password: hashedPassword,
     }
 
